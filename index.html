@@ -1,0 +1,3011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghostty Settings Generator</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent: #58a6ff;
+            --accent-hover: #79c0ff;
+            --border: #30363d;
+            --success: #3fb950;
+            --warning: #d29922;
+            --error: #f85149;
+            --ghost-purple: #9d7cd8;
+            --ghost-blue: #7dcfff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        header {
+            text-align: center;
+            padding: 2rem 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--ghost-purple), var(--ghost-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+        }
+
+        .settings-panel {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .output-panel {
+            position: sticky;
+            top: 2rem;
+            align-self: start;
+            height: fit-content;
+            max-height: calc(100vh - 4rem);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            background: var(--bg-tertiary);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .copy-btn {
+            background: var(--accent);
+            color: var(--bg-primary);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .copy-btn.copied {
+            background: var(--success);
+        }
+
+        .output-content {
+            flex: 1;
+            overflow: auto;
+        }
+
+        #config-output {
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: none;
+            padding: 1.5rem;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.7;
+            resize: none;
+        }
+
+        #config-output:focus {
+            outline: none;
+        }
+
+        .category {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .category:last-child {
+            border-bottom: none;
+        }
+
+        .category-header {
+            padding: 1rem 1.5rem;
+            background: var(--bg-tertiary);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .category-header:hover {
+            background: var(--border);
+        }
+
+        .category-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .category-icon {
+            font-size: 1.25rem;
+        }
+
+        .category-toggle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            transition: transform 0.3s;
+        }
+
+        .category.open .category-toggle {
+            transform: rotate(180deg);
+        }
+
+        .category-content {
+            display: none;
+            padding: 1rem 1.5rem;
+            background: var(--bg-secondary);
+        }
+
+        .category.open .category-content {
+            display: block;
+        }
+
+        .setting {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .setting:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .setting-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .setting-name {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+            font-size: 0.9rem;
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .setting-default {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: var(--bg-tertiary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .setting-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .setting-options {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            font-style: italic;
+        }
+
+        .setting-control {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="color"],
+        select {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        input[type="number"] {
+            width: 100px;
+        }
+
+        input[type="color"] {
+            width: 50px;
+            height: 36px;
+            padding: 2px;
+            cursor: pointer;
+        }
+
+        select {
+            min-width: 150px;
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        .checkbox-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .color-preview {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            border-top: 1px solid var(--border);
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .expand-collapse-all {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .expand-collapse-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.375rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .expand-collapse-btn:hover {
+            background: var(--border);
+            color: var(--text-primary);
+        }
+
+        .reset-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--warning);
+            padding: 0.375rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            margin-left: auto;
+        }
+
+        .reset-btn:hover {
+            background: var(--warning);
+            color: var(--bg-primary);
+        }
+
+        .theme-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .theme-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.375rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .theme-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .theme-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg-primary);
+        }
+
+        .help-text {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Import Section */
+        .import-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .import-header {
+            background: var(--bg-tertiary);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .import-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .import-content {
+            display: none;
+            padding: 1.5rem;
+        }
+
+        .import-section.open .import-content {
+            display: block;
+        }
+
+        .import-textarea {
+            width: 100%;
+            height: 150px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.875rem;
+            resize: vertical;
+            margin-bottom: 1rem;
+        }
+
+        .import-btn {
+            background: var(--success);
+            color: var(--bg-primary);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .import-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Theme Preview */
+        .theme-preview {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        .preview-header {
+            background: var(--bg-tertiary);
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .preview-terminal {
+            padding: 1rem;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            min-height: 180px;
+        }
+
+        .preview-line {
+            white-space: pre;
+        }
+
+        .preview-cursor {
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        /* Palette Grid */
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .palette-color {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .palette-color input[type="color"] {
+            width: 100%;
+            height: 40px;
+        }
+
+        .palette-color label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .palette-row-label {
+            grid-column: 1 / -1;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+
+        /* Keybind Builder */
+        .keybind-builder {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .keybind-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 0.75rem;
+        }
+
+        .keybind-row label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            min-width: 70px;
+        }
+
+        .modifier-checkboxes {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .modifier-checkboxes label {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            min-width: auto;
+        }
+
+        .modifier-checkboxes input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+        }
+
+        .keybind-key-input {
+            width: 120px !important;
+            min-width: 120px !important;
+        }
+
+        .keybind-action-select {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .add-keybind-btn {
+            background: var(--accent);
+            color: var(--bg-primary);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .add-keybind-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .keybind-list {
+            margin-top: 1rem;
+        }
+
+        .keybind-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+
+        .keybind-item code {
+            color: var(--accent);
+        }
+
+        .remove-keybind-btn {
+            background: transparent;
+            border: none;
+            color: var(--error);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        .remove-keybind-btn:hover {
+            opacity: 0.8;
+        }
+
+        .prefix-checkboxes {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .prefix-checkboxes label {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            min-width: auto;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">👻</div>
+            <h1>Ghostty Settings Generator</h1>
+            <p class="subtitle">Configure your Ghostty terminal with ease. Generated config includes helpful comments.</p>
+        </header>
+
+        <!-- Import Section -->
+        <div class="import-section" id="import-section">
+            <div class="import-header" onclick="toggleImport()">
+                <h3>📥 Import Existing Config</h3>
+                <span class="category-toggle">▼</span>
+            </div>
+            <div class="import-content">
+                <p class="setting-description">Paste your existing Ghostty config to populate the form fields:</p>
+                <textarea class="import-textarea" id="import-config" placeholder="# Paste your config here
+font-family = JetBrains Mono
+font-size = 14
+theme = catppuccin-mocha
+background-opacity = 0.95"></textarea>
+                <button class="import-btn" onclick="importConfig()">Import Config</button>
+                <span id="import-status" style="margin-left: 1rem; font-size: 0.875rem;"></span>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="setting-count">0</div>
+                <div class="stat-label">Settings Modified</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="line-count">0</div>
+                <div class="stat-label">Config Lines</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+        <div class="settings-panel">
+            <div class="expand-collapse-all">
+                <button class="expand-collapse-btn" onclick="expandAll()">Expand All</button>
+                <button class="expand-collapse-btn" onclick="collapseAll()">Collapse All</button>
+                <button class="reset-btn" onclick="resetAll()">Reset All</button>
+            </div>
+
+            <!-- Font Settings -->
+            <div class="category open" data-category="fonts">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <h3><span class="category-icon">🔤</span> Fonts</h3>
+                    <span class="category-toggle">▼</span>
+                </div>
+                <div class="category-content">
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">font-family</span>
+                            <span class="setting-default">Default: system default</span>
+                        </div>
+                        <p class="setting-description">The font family to use. Use <code>ghostty +list-fonts</code> to see available fonts.</p>
+                        <div class="setting-control">
+                            <input type="text" id="font-family" placeholder="e.g., JetBrains Mono, Fira Code" data-setting="font-family">
+                        </div>
+                        <p class="help-text">Can specify multiple fonts separated by commas for fallbacks</p>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">font-size</span>
+                            <span class="setting-default">Default: 12</span>
+                        </div>
+                        <p class="setting-description">Font size in points. Supports decimals for high DPI displays.</p>
+                        <div class="setting-control">
+                            <input type="number" id="font-size" min="6" max="72" step="0.5" placeholder="12" data-setting="font-size">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">font-thicken</span>
+                            <span class="setting-default">Default: false</span>
+                        </div>
+                        <p class="setting-description">Draw fonts with a thicker stroke (macOS only).</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="font-thicken" data-setting="font-thicken">
+                                <span class="checkbox-label">Enable font thickening</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">font-synthetic-style</span>
+                            <span class="setting-default">Default: true</span>
+                        </div>
+                        <p class="setting-description">Control whether Ghostty synthesizes bold/italic if not available in font.</p>
+                        <p class="setting-options">Options: true, false, no-bold, no-italic, no-bold-italic</p>
+                        <div class="setting-control">
+                            <select id="font-synthetic-style" data-setting="font-synthetic-style">
+                                <option value="">-- Default --</option>
+                                <option value="true">true (enable all)</option>
+                                <option value="false">false (disable all)</option>
+                                <option value="no-bold">no-bold</option>
+                                <option value="no-italic">no-italic</option>
+                                <option value="no-bold-italic">no-bold-italic</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">font-feature</span>
+                            <span class="setting-default">Default: none</span>
+                        </div>
+                        <p class="setting-description">Font features to enable/disable (e.g., ligatures). Use -calt to disable ligatures.</p>
+                        <div class="setting-control">
+                            <input type="text" id="font-feature" placeholder="e.g., -calt, -liga, ss01" data-setting="font-feature">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">font-family-bold</span>
+                            <span class="setting-default">Default: same as font-family</span>
+                        </div>
+                        <p class="setting-description">Font family for bold text. Override if your font has a dedicated bold variant.</p>
+                        <div class="setting-control">
+                            <input type="text" id="font-family-bold" placeholder="e.g., JetBrains Mono Bold" data-setting="font-family-bold">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">font-family-italic</span>
+                            <span class="setting-default">Default: same as font-family</span>
+                        </div>
+                        <p class="setting-description">Font family for italic text.</p>
+                        <div class="setting-control">
+                            <input type="text" id="font-family-italic" placeholder="e.g., JetBrains Mono Italic" data-setting="font-family-italic">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">font-family-bold-italic</span>
+                            <span class="setting-default">Default: same as font-family</span>
+                        </div>
+                        <p class="setting-description">Font family for bold italic text.</p>
+                        <div class="setting-control">
+                            <input type="text" id="font-family-bold-italic" placeholder="e.g., JetBrains Mono Bold Italic" data-setting="font-family-bold-italic">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">font-style</span>
+                            <span class="setting-default">Default: default</span>
+                        </div>
+                        <p class="setting-description">Named font style (e.g., "Regular", "Medium") if your font doesn't use weight-based naming.</p>
+                        <div class="setting-control">
+                            <input type="text" id="font-style" placeholder="e.g., Regular, Medium, Light" data-setting="font-style">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">font-style-bold</span>
+                            <span class="setting-default">Default: bold</span>
+                        </div>
+                        <p class="setting-description">Named style for bold text.</p>
+                        <div class="setting-control">
+                            <input type="text" id="font-style-bold" placeholder="e.g., Bold, Semibold" data-setting="font-style-bold">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">font-style-italic</span>
+                            <span class="setting-default">Default: italic</span>
+                        </div>
+                        <p class="setting-description">Named style for italic text.</p>
+                        <div class="setting-control">
+                            <input type="text" id="font-style-italic" placeholder="e.g., Italic, Oblique" data-setting="font-style-italic">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">font-style-bold-italic</span>
+                            <span class="setting-default">Default: bold italic</span>
+                        </div>
+                        <p class="setting-description">Named style for bold italic text.</p>
+                        <div class="setting-control">
+                            <input type="text" id="font-style-bold-italic" placeholder="e.g., Bold Italic" data-setting="font-style-bold-italic">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Colors & Theme -->
+            <div class="category" data-category="colors">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <h3><span class="category-icon">🎨</span> Colors & Theme</h3>
+                    <span class="category-toggle">▼</span>
+                </div>
+                <div class="category-content">
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">theme</span>
+                            <span class="setting-default">Default: none</span>
+                        </div>
+                        <p class="setting-description">Theme name or path. Use <code>ghostty +list-themes</code> to see available themes.</p>
+                        <div class="setting-control">
+                            <input type="text" id="theme" placeholder="e.g., Dracula, nord, catppuccin-mocha" data-setting="theme">
+                        </div>
+                        <div class="theme-selector">
+                            <button class="theme-btn" onclick="setTheme('catppuccin-mocha')">Catppuccin Mocha</button>
+                            <button class="theme-btn" onclick="setTheme('catppuccin-latte')">Catppuccin Latte</button>
+                            <button class="theme-btn" onclick="setTheme('Dracula')">Dracula</button>
+                            <button class="theme-btn" onclick="setTheme('nord')">Nord</button>
+                            <button class="theme-btn" onclick="setTheme('GitHub Dark')">GitHub Dark</button>
+                            <button class="theme-btn" onclick="setTheme('Gruvbox Dark')">Gruvbox Dark</button>
+                            <button class="theme-btn" onclick="setTheme('One Dark')">One Dark</button>
+                            <button class="theme-btn" onclick="setTheme('Solarized Dark')">Solarized Dark</button>
+                            <button class="theme-btn" onclick="setTheme('Tokyo Night')">Tokyo Night</button>
+                            <button class="theme-btn" onclick="setTheme('rose-pine')">Rosé Pine</button>
+                        </div>
+                        <p class="help-text">For light/dark auto-switching: light:ThemeName,dark:ThemeName</p>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">background</span>
+                            <span class="setting-default">Default: #000000</span>
+                        </div>
+                        <p class="setting-description">Background color (overrides theme).</p>
+                        <div class="setting-control color-preview">
+                            <input type="color" id="background-color" value="#0d1117" data-setting="background">
+                            <input type="text" id="background-text" placeholder="#RRGGBB" data-setting="background" style="width: 120px;">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">foreground</span>
+                            <span class="setting-default">Default: #ffffff</span>
+                        </div>
+                        <p class="setting-description">Foreground/text color (overrides theme).</p>
+                        <div class="setting-control color-preview">
+                            <input type="color" id="foreground-color" value="#e6edf3" data-setting="foreground">
+                            <input type="text" id="foreground-text" placeholder="#RRGGBB" data-setting="foreground" style="width: 120px;">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">selection-foreground</span>
+                            <span class="setting-default">Default: inverted</span>
+                        </div>
+                        <p class="setting-description">Text color when selected.</p>
+                        <div class="setting-control color-preview">
+                            <input type="color" id="selection-foreground-color" data-setting="selection-foreground">
+                            <input type="text" id="selection-foreground-text" placeholder="#RRGGBB or cell-foreground" data-setting="selection-foreground" style="width: 180px;">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">selection-background</span>
+                            <span class="setting-default">Default: inverted</span>
+                        </div>
+                        <p class="setting-description">Background color of selected text.</p>
+                        <div class="setting-control color-preview">
+                            <input type="color" id="selection-background-color" data-setting="selection-background">
+                            <input type="text" id="selection-background-text" placeholder="#RRGGBB or cell-background" data-setting="selection-background" style="width: 180px;">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">minimum-contrast</span>
+                            <span class="setting-default">Default: 1</span>
+                        </div>
+                        <p class="setting-description">Minimum contrast ratio (1-21) between foreground and background. Higher values prevent hard-to-read text.</p>
+                        <div class="setting-control">
+                            <input type="number" id="minimum-contrast" min="1" max="21" step="0.1" placeholder="1" data-setting="minimum-contrast">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">bold-is-bright</span>
+                            <span class="setting-default">Default: false</span>
+                        </div>
+                        <p class="setting-description">Use bright colors for bold text (terminal convention).</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="bold-is-bright" data-setting="bold-is-bright">
+                                <span class="checkbox-label">Bold text uses bright colors</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">selection-invert-fg-bg</span>
+                            <span class="setting-default">Default: true</span>
+                        </div>
+                        <p class="setting-description">Invert foreground/background for selection instead of using selection colors.</p>
+                        <div class="setting-control">
+                            <select id="selection-invert-fg-bg" data-setting="selection-invert-fg-bg">
+                                <option value="">-- Default (true) --</option>
+                                <option value="true">true</option>
+                                <option value="false">false</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">cursor-invert-fg-bg</span>
+                            <span class="setting-default">Default: false</span>
+                        </div>
+                        <p class="setting-description">Invert foreground/background colors under cursor.</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="cursor-invert-fg-bg" data-setting="cursor-invert-fg-bg">
+                                <span class="checkbox-label">Invert colors under cursor</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Color Palette -->
+            <div class="category" data-category="palette">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <h3><span class="category-icon">🌈</span> Color Palette (ANSI Colors)</h3>
+                    <span class="category-toggle">▼</span>
+                </div>
+                <div class="category-content">
+                    <p class="setting-description">Customize the 16 ANSI colors used by terminal applications. These override theme colors.</p>
+
+                    <div class="palette-row-label">Normal Colors (0-7)</div>
+                    <div class="palette-grid">
+                        <div class="palette-color">
+                            <input type="color" id="palette-0" value="#1d2021" data-palette="0">
+                            <label>0: Black</label>
+                        </div>
+                        <div class="palette-color">
+                            <input type="color" id="palette-1" value="#cc241d" data-palette="1">
+                            <label>1: Red</label>
+                        </div>
+                        <div class="palette-color">
+                            <input type="color" id="palette-2" value="#98971a" data-palette="2">
+                            <label>2: Green</label>
+                        </div>
+                        <div class="palette-color">
+                            <input type="color" id="palette-3" value="#d79921" data-palette="3">
+                            <label>3: Yellow</label>
+                        </div>
+                        <div class="palette-color">
+                            <input type="color" id="palette-4" value="#458588" data-palette="4">
+                            <label>4: Blue</label>
+                        </div>
+                        <div class="palette-color">
+                            <input type="color" id="palette-5" value="#b16286" data-palette="5">
+                            <label>5: Magenta</label>
+                        </div>
+                        <div class="palette-color">
+                            <input type="color" id="palette-6" value="#689d6a" data-palette="6">
+                            <label>6: Cyan</label>
+                        </div>
+                        <div class="palette-color">
+                            <input type="color" id="palette-7" value="#a89984" data-palette="7">
+                            <label>7: White</label>
+                        </div>
+                    </div>
+
+                    <div class="palette-row-label">Bright Colors (8-15)</div>
+                    <div class="palette-grid">
+                        <div class="palette-color">
+                            <input type="color" id="palette-8" value="#928374" data-palette="8">
+                            <label>8: Bright Black</label>
+                        </div>
+                        <div class="palette-color">
+                            <input type="color" id="palette-9" value="#fb4934" data-palette="9">
+                            <label>9: Bright Red</label>
+                        </div>
+                        <div class="palette-color">
+                            <input type="color" id="palette-10" value="#b8bb26" data-palette="10">
+                            <label>10: Bright Green</label>
+                        </div>
+                        <div class="palette-color">
+                            <input type="color" id="palette-11" value="#fabd2f" data-palette="11">
+                            <label>11: Bright Yellow</label>
+                        </div>
+                        <div class="palette-color">
+                            <input type="color" id="palette-12" value="#83a598" data-palette="12">
+                            <label>12: Bright Blue</label>
+                        </div>
+                        <div class="palette-color">
+                            <input type="color" id="palette-13" value="#d3869b" data-palette="13">
+                            <label>13: Bright Magenta</label>
+                        </div>
+                        <div class="palette-color">
+                            <input type="color" id="palette-14" value="#8ec07c" data-palette="14">
+                            <label>14: Bright Cyan</label>
+                        </div>
+                        <div class="palette-color">
+                            <input type="color" id="palette-15" value="#ebdbb2" data-palette="15">
+                            <label>15: Bright White</label>
+                        </div>
+                    </div>
+
+                    <button class="expand-collapse-btn" onclick="resetPalette()" style="margin-top: 0.5rem;">Reset to Defaults</button>
+                </div>
+            </div>
+
+            <!-- Cursor -->
+            <div class="category" data-category="cursor">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <h3><span class="category-icon">▮</span> Cursor</h3>
+                    <span class="category-toggle">▼</span>
+                </div>
+                <div class="category-content">
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">cursor-style</span>
+                            <span class="setting-default">Default: block</span>
+                        </div>
+                        <p class="setting-description">The default cursor style. Programs can override this.</p>
+                        <p class="setting-options">Options: block, bar, underline, block_hollow</p>
+                        <div class="setting-control">
+                            <select id="cursor-style" data-setting="cursor-style">
+                                <option value="">-- Default (block) --</option>
+                                <option value="block">block</option>
+                                <option value="bar">bar</option>
+                                <option value="underline">underline</option>
+                                <option value="block_hollow">block_hollow</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">cursor-style-blink</span>
+                            <span class="setting-default">Default: true</span>
+                        </div>
+                        <p class="setting-description">Whether the cursor blinks by default.</p>
+                        <div class="setting-control">
+                            <select id="cursor-style-blink" data-setting="cursor-style-blink">
+                                <option value="">-- Default --</option>
+                                <option value="true">true</option>
+                                <option value="false">false</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">cursor-color</span>
+                            <span class="setting-default">Default: auto</span>
+                        </div>
+                        <p class="setting-description">Cursor color. Can also be cell-foreground or cell-background.</p>
+                        <div class="setting-control color-preview">
+                            <input type="color" id="cursor-color-picker" data-setting="cursor-color">
+                            <input type="text" id="cursor-color" placeholder="#RRGGBB or cell-foreground" data-setting="cursor-color" style="width: 180px;">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">cursor-text</span>
+                            <span class="setting-default">Default: auto</span>
+                        </div>
+                        <p class="setting-description">Color of text under the cursor.</p>
+                        <div class="setting-control color-preview">
+                            <input type="color" id="cursor-text-picker" data-setting="cursor-text">
+                            <input type="text" id="cursor-text" placeholder="#RRGGBB" data-setting="cursor-text" style="width: 180px;">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">cursor-opacity</span>
+                            <span class="setting-default">Default: 1</span>
+                        </div>
+                        <p class="setting-description">Cursor opacity (0.0 to 1.0).</p>
+                        <div class="setting-control">
+                            <input type="number" id="cursor-opacity" min="0" max="1" step="0.1" placeholder="1" data-setting="cursor-opacity">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Background Effects -->
+            <div class="category" data-category="background">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <h3><span class="category-icon">🖼️</span> Background Effects</h3>
+                    <span class="category-toggle">▼</span>
+                </div>
+                <div class="category-content">
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">background-opacity</span>
+                            <span class="setting-default">Default: 1</span>
+                        </div>
+                        <p class="setting-description">Window background opacity (0.0 = transparent, 1.0 = opaque).</p>
+                        <div class="setting-control">
+                            <input type="number" id="background-opacity" min="0" max="1" step="0.05" placeholder="1" data-setting="background-opacity">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">background-blur</span>
+                            <span class="setting-default">Default: false</span>
+                        </div>
+                        <p class="setting-description">Blur the background when opacity is less than 1. Can be true/false or a number (blur intensity).</p>
+                        <div class="setting-control">
+                            <select id="background-blur" data-setting="background-blur">
+                                <option value="">-- Default (false) --</option>
+                                <option value="true">true (blur intensity 20)</option>
+                                <option value="false">false</option>
+                                <option value="10">10 (light blur)</option>
+                                <option value="20">20 (medium blur)</option>
+                                <option value="30">30 (heavy blur)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">background-image</span>
+                            <span class="setting-default">Default: none</span>
+                        </div>
+                        <p class="setting-description">Path to a PNG or JPEG background image.</p>
+                        <div class="setting-control">
+                            <input type="text" id="background-image" placeholder="/path/to/image.png" data-setting="background-image">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">background-image-opacity</span>
+                            <span class="setting-default">Default: 1</span>
+                        </div>
+                        <p class="setting-description">Background image opacity (relative to background-opacity).</p>
+                        <div class="setting-control">
+                            <input type="number" id="background-image-opacity" min="0" max="2" step="0.1" placeholder="1" data-setting="background-image-opacity">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">background-image-fit</span>
+                            <span class="setting-default">Default: contain</span>
+                        </div>
+                        <p class="setting-description">How the background image is scaled.</p>
+                        <p class="setting-options">Options: contain, cover, stretch, none</p>
+                        <div class="setting-control">
+                            <select id="background-image-fit" data-setting="background-image-fit">
+                                <option value="">-- Default (contain) --</option>
+                                <option value="contain">contain (fit within)</option>
+                                <option value="cover">cover (fill, may crop)</option>
+                                <option value="stretch">stretch (distort to fill)</option>
+                                <option value="none">none (original size)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Window -->
+            <div class="category" data-category="window">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <h3><span class="category-icon">🪟</span> Window</h3>
+                    <span class="category-toggle">▼</span>
+                </div>
+                <div class="category-content">
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">window-padding-x</span>
+                            <span class="setting-default">Default: 0</span>
+                        </div>
+                        <p class="setting-description">Horizontal padding in points. Can be single value or "left,right".</p>
+                        <div class="setting-control">
+                            <input type="text" id="window-padding-x" placeholder="e.g., 10 or 10,20" data-setting="window-padding-x">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">window-padding-y</span>
+                            <span class="setting-default">Default: 0</span>
+                        </div>
+                        <p class="setting-description">Vertical padding in points. Can be single value or "top,bottom".</p>
+                        <div class="setting-control">
+                            <input type="text" id="window-padding-y" placeholder="e.g., 10 or 10,20" data-setting="window-padding-y">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">window-padding-balance</span>
+                            <span class="setting-default">Default: false</span>
+                        </div>
+                        <p class="setting-description">Automatically balance padding to center the grid.</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="window-padding-balance" data-setting="window-padding-balance">
+                                <span class="checkbox-label">Enable balanced padding</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">window-decoration</span>
+                            <span class="setting-default">Default: auto</span>
+                        </div>
+                        <p class="setting-description">Window decoration style.</p>
+                        <div class="setting-control">
+                            <select id="window-decoration" data-setting="window-decoration">
+                                <option value="">-- Default (auto) --</option>
+                                <option value="auto">auto</option>
+                                <option value="none">none (no decorations)</option>
+                                <option value="client">client (client-side)</option>
+                                <option value="server">server (server-side, Linux)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">window-theme</span>
+                            <span class="setting-default">Default: auto</span>
+                        </div>
+                        <p class="setting-description">Theme for window decorations.</p>
+                        <div class="setting-control">
+                            <select id="window-theme" data-setting="window-theme">
+                                <option value="">-- Default (auto) --</option>
+                                <option value="auto">auto (based on background)</option>
+                                <option value="system">system</option>
+                                <option value="light">light</option>
+                                <option value="dark">dark</option>
+                                <option value="ghostty">ghostty (Linux only)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">window-height</span>
+                            <span class="setting-default">Default: auto</span>
+                        </div>
+                        <p class="setting-description">Initial window height in grid cells.</p>
+                        <div class="setting-control">
+                            <input type="number" id="window-height" min="4" placeholder="e.g., 24" data-setting="window-height">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">window-width</span>
+                            <span class="setting-default">Default: auto</span>
+                        </div>
+                        <p class="setting-description">Initial window width in grid cells.</p>
+                        <div class="setting-control">
+                            <input type="number" id="window-width" min="10" placeholder="e.g., 80" data-setting="window-width">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">fullscreen</span>
+                            <span class="setting-default">Default: false</span>
+                        </div>
+                        <p class="setting-description">Start windows in fullscreen mode.</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="fullscreen" data-setting="fullscreen">
+                                <span class="checkbox-label">Start fullscreen</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">window-padding-color</span>
+                            <span class="setting-default">Default: background</span>
+                        </div>
+                        <p class="setting-description">Color of the window padding area.</p>
+                        <div class="setting-control">
+                            <select id="window-padding-color" data-setting="window-padding-color">
+                                <option value="">-- Default (background) --</option>
+                                <option value="background">background (use background color)</option>
+                                <option value="extend">extend (extend terminal background)</option>
+                                <option value="extend-always">extend-always (always extend)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">window-vsync</span>
+                            <span class="setting-default">Default: true</span>
+                        </div>
+                        <p class="setting-description">Synchronize rendering with monitor refresh. Disable for lower latency.</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="window-vsync" data-setting="window-vsync" checked>
+                                <span class="checkbox-label">Enable VSync</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">resize-overlay</span>
+                            <span class="setting-default">Default: after-first</span>
+                        </div>
+                        <p class="setting-description">When to show resize overlay with dimensions.</p>
+                        <div class="setting-control">
+                            <select id="resize-overlay" data-setting="resize-overlay">
+                                <option value="">-- Default (after-first) --</option>
+                                <option value="always">always</option>
+                                <option value="never">never</option>
+                                <option value="after-first">after-first (skip first resize)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">resize-overlay-position</span>
+                            <span class="setting-default">Default: center</span>
+                        </div>
+                        <p class="setting-description">Position of the resize overlay.</p>
+                        <div class="setting-control">
+                            <select id="resize-overlay-position" data-setting="resize-overlay-position">
+                                <option value="">-- Default (center) --</option>
+                                <option value="center">center</option>
+                                <option value="top-left">top-left</option>
+                                <option value="top-center">top-center</option>
+                                <option value="top-right">top-right</option>
+                                <option value="bottom-left">bottom-left</option>
+                                <option value="bottom-center">bottom-center</option>
+                                <option value="bottom-right">bottom-right</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">resize-overlay-duration</span>
+                            <span class="setting-default">Default: 750ms</span>
+                        </div>
+                        <p class="setting-description">Duration to show resize overlay (in milliseconds). Set to 0 to disable timeout.</p>
+                        <div class="setting-control">
+                            <input type="number" id="resize-overlay-duration" min="0" placeholder="750" data-setting="resize-overlay-duration">
+                        </div>
+                        <p class="help-text">Use formats like 750ms, 1s, or just a number for milliseconds</p>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">confirm-close-surface</span>
+                            <span class="setting-default">Default: true</span>
+                        </div>
+                        <p class="setting-description">Show confirmation dialog when closing window with running process.</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="confirm-close-surface" data-setting="confirm-close-surface" checked>
+                                <span class="checkbox-label">Confirm before closing</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">window-save-state</span>
+                            <span class="setting-default">Default: default</span>
+                        </div>
+                        <p class="setting-description">Save window state (size, position) on exit.</p>
+                        <div class="setting-control">
+                            <select id="window-save-state" data-setting="window-save-state">
+                                <option value="">-- Default --</option>
+                                <option value="always">always</option>
+                                <option value="never">never</option>
+                                <option value="default">default (platform default)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">window-title-font-family</span>
+                            <span class="setting-default">Default: system</span>
+                        </div>
+                        <p class="setting-description">Font family for window title (if using integrated title bar).</p>
+                        <div class="setting-control">
+                            <input type="text" id="window-title-font-family" placeholder="e.g., SF Pro" data-setting="window-title-font-family">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mouse & Input -->
+            <div class="category" data-category="mouse">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <h3><span class="category-icon">🖱️</span> Mouse & Input</h3>
+                    <span class="category-toggle">▼</span>
+                </div>
+                <div class="category-content">
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">mouse-hide-while-typing</span>
+                            <span class="setting-default">Default: false</span>
+                        </div>
+                        <p class="setting-description">Hide mouse cursor while typing.</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="mouse-hide-while-typing" data-setting="mouse-hide-while-typing">
+                                <span class="checkbox-label">Hide mouse while typing</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">mouse-scroll-multiplier</span>
+                            <span class="setting-default">Default: 3</span>
+                        </div>
+                        <p class="setting-description">Scroll speed multiplier (lines per tick).</p>
+                        <div class="setting-control">
+                            <input type="number" id="mouse-scroll-multiplier" min="0.01" max="10000" step="0.5" placeholder="3" data-setting="mouse-scroll-multiplier">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">focus-follows-mouse</span>
+                            <span class="setting-default">Default: false</span>
+                        </div>
+                        <p class="setting-description">Mouse hovering over a split focuses it.</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="focus-follows-mouse" data-setting="focus-follows-mouse">
+                                <span class="checkbox-label">Enable focus follows mouse</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">click-repeat-interval</span>
+                            <span class="setting-default">Default: system</span>
+                        </div>
+                        <p class="setting-description">Interval for detecting multi-click (double, triple) in milliseconds.</p>
+                        <div class="setting-control">
+                            <input type="number" id="click-repeat-interval" min="0" placeholder="system default" data-setting="click-repeat-interval">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">mouse-shift-capture</span>
+                            <span class="setting-default">Default: false</span>
+                        </div>
+                        <p class="setting-description">Allow shift+click to extend selection even in mouse capture mode.</p>
+                        <div class="setting-control">
+                            <select id="mouse-shift-capture" data-setting="mouse-shift-capture">
+                                <option value="">-- Default (false) --</option>
+                                <option value="true">true (shift bypasses mouse capture)</option>
+                                <option value="false">false (shift sent to app)</option>
+                                <option value="always">always (shift always bypasses)</option>
+                                <option value="never">never (shift never bypasses)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clipboard -->
+            <div class="category" data-category="clipboard">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <h3><span class="category-icon">📋</span> Clipboard</h3>
+                    <span class="category-toggle">▼</span>
+                </div>
+                <div class="category-content">
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">clipboard-read</span>
+                            <span class="setting-default">Default: ask</span>
+                        </div>
+                        <p class="setting-description">Allow programs to read clipboard (OSC 52).</p>
+                        <div class="setting-control">
+                            <select id="clipboard-read" data-setting="clipboard-read">
+                                <option value="">-- Default (ask) --</option>
+                                <option value="ask">ask</option>
+                                <option value="allow">allow</option>
+                                <option value="deny">deny</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">clipboard-write</span>
+                            <span class="setting-default">Default: allow</span>
+                        </div>
+                        <p class="setting-description">Allow programs to write to clipboard (OSC 52).</p>
+                        <div class="setting-control">
+                            <select id="clipboard-write" data-setting="clipboard-write">
+                                <option value="">-- Default (allow) --</option>
+                                <option value="ask">ask</option>
+                                <option value="allow">allow</option>
+                                <option value="deny">deny</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">copy-on-select</span>
+                            <span class="setting-default">Default: true</span>
+                        </div>
+                        <p class="setting-description">Automatically copy selected text to clipboard.</p>
+                        <div class="setting-control">
+                            <select id="copy-on-select" data-setting="copy-on-select">
+                                <option value="">-- Default (true) --</option>
+                                <option value="true">true</option>
+                                <option value="false">false</option>
+                                <option value="clipboard">clipboard (copy to both)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">clipboard-trim-trailing-spaces</span>
+                            <span class="setting-default">Default: true</span>
+                        </div>
+                        <p class="setting-description">Remove trailing spaces when copying.</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="clipboard-trim-trailing-spaces" data-setting="clipboard-trim-trailing-spaces" checked>
+                                <span class="checkbox-label">Trim trailing spaces on copy</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">clipboard-paste-protection</span>
+                            <span class="setting-default">Default: true</span>
+                        </div>
+                        <p class="setting-description">Warn before pasting content that could be dangerous (multiline commands, etc).</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="clipboard-paste-protection" data-setting="clipboard-paste-protection" checked>
+                                <span class="checkbox-label">Enable paste protection</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">clipboard-paste-bracketed-safe</span>
+                            <span class="setting-default">Default: true</span>
+                        </div>
+                        <p class="setting-description">Use bracketed paste when safe (shell integration detected).</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="clipboard-paste-bracketed-safe" data-setting="clipboard-paste-bracketed-safe" checked>
+                                <span class="checkbox-label">Safe bracketed paste</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shell & Command -->
+            <div class="category" data-category="shell">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <h3><span class="category-icon">💻</span> Shell & Command</h3>
+                    <span class="category-toggle">▼</span>
+                </div>
+                <div class="category-content">
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">command</span>
+                            <span class="setting-default">Default: $SHELL</span>
+                        </div>
+                        <p class="setting-description">Command to run (usually a shell).</p>
+                        <div class="setting-control">
+                            <input type="text" id="command" placeholder="e.g., /bin/zsh, /usr/bin/fish" data-setting="command">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">shell-integration</span>
+                            <span class="setting-default">Default: detect</span>
+                        </div>
+                        <p class="setting-description">Shell integration mode for enhanced features.</p>
+                        <div class="setting-control">
+                            <select id="shell-integration" data-setting="shell-integration">
+                                <option value="">-- Default (detect) --</option>
+                                <option value="detect">detect</option>
+                                <option value="none">none</option>
+                                <option value="bash">bash</option>
+                                <option value="fish">fish</option>
+                                <option value="zsh">zsh</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">scrollback-limit</span>
+                            <span class="setting-default">Default: 10000000</span>
+                        </div>
+                        <p class="setting-description">Scrollback buffer size in bytes.</p>
+                        <div class="setting-control">
+                            <input type="number" id="scrollback-limit" min="0" placeholder="10000000" data-setting="scrollback-limit">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">initial-command</span>
+                            <span class="setting-default">Default: none</span>
+                        </div>
+                        <p class="setting-description">Command to run before starting shell (e.g., tmux attach).</p>
+                        <div class="setting-control">
+                            <input type="text" id="initial-command" placeholder="e.g., tmux attach || tmux" data-setting="initial-command">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">working-directory</span>
+                            <span class="setting-default">Default: inherit</span>
+                        </div>
+                        <p class="setting-description">Initial working directory for new terminals.</p>
+                        <div class="setting-control">
+                            <input type="text" id="working-directory" placeholder="e.g., ~/projects or inherit" data-setting="working-directory">
+                        </div>
+                        <p class="help-text">Use 'inherit' to use parent directory, or specify a path</p>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">wait-after-command</span>
+                            <span class="setting-default">Default: false</span>
+                        </div>
+                        <p class="setting-description">Keep terminal open after command exits (useful for viewing output).</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="wait-after-command" data-setting="wait-after-command">
+                                <span class="checkbox-label">Wait after command exits</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">abnormal-command-exit-runtime</span>
+                            <span class="setting-default">Default: 250ms</span>
+                        </div>
+                        <p class="setting-description">Minimum runtime before considering command exit abnormal.</p>
+                        <div class="setting-control">
+                            <input type="text" id="abnormal-command-exit-runtime" placeholder="e.g., 250ms, 1s" data-setting="abnormal-command-exit-runtime">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">shell-integration-features</span>
+                            <span class="setting-default">Default: all enabled</span>
+                        </div>
+                        <p class="setting-description">Control which shell integration features are enabled.</p>
+                        <div class="setting-control">
+                            <input type="text" id="shell-integration-features" placeholder="e.g., cursor, sudo, title" data-setting="shell-integration-features">
+                        </div>
+                        <p class="help-text">Features: cursor, sudo, title. Use no-feature to disable (e.g., no-cursor)</p>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">desktop-notifications</span>
+                            <span class="setting-default">Default: true</span>
+                        </div>
+                        <p class="setting-description">Allow programs to send desktop notifications (OSC 777).</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="desktop-notifications" data-setting="desktop-notifications" checked>
+                                <span class="checkbox-label">Enable desktop notifications</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">term</span>
+                            <span class="setting-default">Default: xterm-ghostty</span>
+                        </div>
+                        <p class="setting-description">Value for TERM environment variable.</p>
+                        <div class="setting-control">
+                            <input type="text" id="term" placeholder="xterm-ghostty, xterm-256color" data-setting="term">
+                        </div>
+                        <p class="help-text">Use xterm-256color if apps don't support xterm-ghostty</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Keybindings -->
+            <div class="category" data-category="keybindings">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <h3><span class="category-icon">⌨️</span> Keybindings</h3>
+                    <span class="category-toggle">▼</span>
+                </div>
+                <div class="category-content">
+                    <p class="setting-description">Build custom keybindings visually or enter them manually below.</p>
+
+                    <div class="keybind-builder">
+                        <div class="keybind-row">
+                            <label>Modifiers:</label>
+                            <div class="modifier-checkboxes">
+                                <label><input type="checkbox" id="kb-ctrl"> ctrl</label>
+                                <label><input type="checkbox" id="kb-shift"> shift</label>
+                                <label><input type="checkbox" id="kb-alt"> alt</label>
+                                <label><input type="checkbox" id="kb-super"> super/cmd</label>
+                            </div>
+                        </div>
+                        <div class="keybind-row">
+                            <label>Key:</label>
+                            <input type="text" id="kb-key" class="keybind-key-input" placeholder="e.g., c, f1, enter">
+                        </div>
+                        <div class="keybind-row">
+                            <label>Action:</label>
+                            <select id="kb-action" class="keybind-action-select">
+                                <option value="">-- Select Action --</option>
+                                <optgroup label="Clipboard">
+                                    <option value="copy_to_clipboard">copy_to_clipboard</option>
+                                    <option value="paste_from_clipboard">paste_from_clipboard</option>
+                                    <option value="paste_from_selection">paste_from_selection</option>
+                                </optgroup>
+                                <optgroup label="Font">
+                                    <option value="increase_font_size:1">increase_font_size:1</option>
+                                    <option value="decrease_font_size:1">decrease_font_size:1</option>
+                                    <option value="reset_font_size">reset_font_size</option>
+                                </optgroup>
+                                <optgroup label="Scrolling">
+                                    <option value="scroll_page_up">scroll_page_up</option>
+                                    <option value="scroll_page_down">scroll_page_down</option>
+                                    <option value="scroll_to_top">scroll_to_top</option>
+                                    <option value="scroll_to_bottom">scroll_to_bottom</option>
+                                </optgroup>
+                                <optgroup label="Windows/Tabs/Splits">
+                                    <option value="new_window">new_window</option>
+                                    <option value="new_tab">new_tab</option>
+                                    <option value="close_surface">close_surface</option>
+                                    <option value="close_tab">close_tab</option>
+                                    <option value="close_window">close_window</option>
+                                    <option value="new_split:right">new_split:right</option>
+                                    <option value="new_split:down">new_split:down</option>
+                                    <option value="new_split:auto">new_split:auto</option>
+                                    <option value="goto_split:previous">goto_split:previous</option>
+                                    <option value="goto_split:next">goto_split:next</option>
+                                    <option value="goto_split:up">goto_split:up</option>
+                                    <option value="goto_split:down">goto_split:down</option>
+                                    <option value="goto_split:left">goto_split:left</option>
+                                    <option value="goto_split:right">goto_split:right</option>
+                                    <option value="toggle_split_zoom">toggle_split_zoom</option>
+                                    <option value="equalize_splits">equalize_splits</option>
+                                    <option value="previous_tab">previous_tab</option>
+                                    <option value="next_tab">next_tab</option>
+                                    <option value="last_tab">last_tab</option>
+                                </optgroup>
+                                <optgroup label="Quick Terminal">
+                                    <option value="toggle_quick_terminal">toggle_quick_terminal</option>
+                                </optgroup>
+                                <optgroup label="Fullscreen/Window">
+                                    <option value="toggle_fullscreen">toggle_fullscreen</option>
+                                    <option value="toggle_maximize">toggle_maximize</option>
+                                    <option value="toggle_visibility">toggle_visibility</option>
+                                </optgroup>
+                                <optgroup label="Other">
+                                    <option value="reload_config">reload_config</option>
+                                    <option value="open_config">open_config</option>
+                                    <option value="reset">reset</option>
+                                    <option value="clear_screen">clear_screen</option>
+                                    <option value="select_all">select_all</option>
+                                    <option value="quit">quit</option>
+                                    <option value="inspector:toggle">inspector:toggle</option>
+                                </optgroup>
+                                <optgroup label="Text/Sequences">
+                                    <option value="text:">text: (custom text)</option>
+                                    <option value="csi:">csi: (CSI sequence)</option>
+                                    <option value="esc:">esc: (escape sequence)</option>
+                                </optgroup>
+                                <optgroup label="Special">
+                                    <option value="unbind">unbind</option>
+                                    <option value="ignore">ignore</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="keybind-row">
+                            <label>Prefixes:</label>
+                            <div class="prefix-checkboxes">
+                                <label><input type="checkbox" id="kb-global"> global:</label>
+                                <label><input type="checkbox" id="kb-all"> all:</label>
+                                <label><input type="checkbox" id="kb-unconsumed"> unconsumed:</label>
+                                <label><input type="checkbox" id="kb-performable"> performable:</label>
+                            </div>
+                        </div>
+                        <div class="keybind-row">
+                            <label></label>
+                            <button class="add-keybind-btn" onclick="addKeybind()">Add Keybind</button>
+                        </div>
+                    </div>
+
+                    <div class="keybind-list" id="keybind-list"></div>
+
+                    <div class="setting" style="margin-top: 1rem;">
+                        <div class="setting-header">
+                            <span class="setting-name">Manual Entry</span>
+                        </div>
+                        <p class="setting-description">Or enter keybindings manually (one per line):</p>
+                        <textarea id="keybind" rows="3" style="width: 100%; background: var(--bg-primary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.5rem; border-radius: 6px; font-family: monospace; resize: vertical;" data-setting="keybind" placeholder="ctrl+shift+c=copy_to_clipboard"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- macOS Settings -->
+            <div class="category" data-category="macos">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <h3><span class="category-icon">🍎</span> macOS Settings</h3>
+                    <span class="category-toggle">▼</span>
+                </div>
+                <div class="category-content">
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">macos-titlebar-style</span>
+                            <span class="setting-default">Default: transparent</span>
+                        </div>
+                        <p class="setting-description">Style of the macOS titlebar.</p>
+                        <div class="setting-control">
+                            <select id="macos-titlebar-style" data-setting="macos-titlebar-style">
+                                <option value="">-- Default (transparent) --</option>
+                                <option value="native">native</option>
+                                <option value="transparent">transparent</option>
+                                <option value="tabs">tabs (integrated tab bar)</option>
+                                <option value="hidden">hidden</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">macos-option-as-alt</span>
+                            <span class="setting-default">Default: depends on keyboard</span>
+                        </div>
+                        <p class="setting-description">Treat Option key as Alt for terminal programs.</p>
+                        <div class="setting-control">
+                            <select id="macos-option-as-alt" data-setting="macos-option-as-alt">
+                                <option value="">-- Default --</option>
+                                <option value="true">true (both Option keys)</option>
+                                <option value="false">false</option>
+                                <option value="left">left (left Option only)</option>
+                                <option value="right">right (right Option only)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">macos-icon</span>
+                            <span class="setting-default">Default: official</span>
+                        </div>
+                        <p class="setting-description">Customize the dock icon.</p>
+                        <div class="setting-control">
+                            <select id="macos-icon" data-setting="macos-icon">
+                                <option value="">-- Default (official) --</option>
+                                <option value="official">official</option>
+                                <option value="blueprint">blueprint</option>
+                                <option value="chalkboard">chalkboard</option>
+                                <option value="glass">glass</option>
+                                <option value="holographic">holographic</option>
+                                <option value="paper">paper</option>
+                                <option value="retro">retro</option>
+                                <option value="xray">xray</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">macos-icon-frame</span>
+                            <span class="setting-default">Default: auto</span>
+                        </div>
+                        <p class="setting-description">Add frame around custom icons.</p>
+                        <div class="setting-control">
+                            <select id="macos-icon-frame" data-setting="macos-icon-frame">
+                                <option value="">-- Default (auto) --</option>
+                                <option value="aluminum">aluminum</option>
+                                <option value="beige">beige</option>
+                                <option value="plastic">plastic</option>
+                                <option value="chrome">chrome</option>
+                                <option value="none">none</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">macos-icon-ghost-color</span>
+                            <span class="setting-default">Default: auto</span>
+                        </div>
+                        <p class="setting-description">Custom color for the ghost icon.</p>
+                        <div class="setting-control color-preview">
+                            <input type="color" id="macos-icon-ghost-color-picker" data-setting="macos-icon-ghost-color">
+                            <input type="text" id="macos-icon-ghost-color" placeholder="#RRGGBB or auto" data-setting="macos-icon-ghost-color" style="width: 150px;">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">macos-icon-screen-color</span>
+                            <span class="setting-default">Default: auto</span>
+                        </div>
+                        <p class="setting-description">Custom color for the screen background on icon.</p>
+                        <div class="setting-control color-preview">
+                            <input type="color" id="macos-icon-screen-color-picker" data-setting="macos-icon-screen-color">
+                            <input type="text" id="macos-icon-screen-color" placeholder="#RRGGBB or auto" data-setting="macos-icon-screen-color" style="width: 150px;">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">macos-titlebar-proxy-icon</span>
+                            <span class="setting-default">Default: visible</span>
+                        </div>
+                        <p class="setting-description">Show folder icon in titlebar (proxy icon).</p>
+                        <div class="setting-control">
+                            <select id="macos-titlebar-proxy-icon" data-setting="macos-titlebar-proxy-icon">
+                                <option value="">-- Default (visible) --</option>
+                                <option value="visible">visible</option>
+                                <option value="hidden">hidden</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">macos-window-shadow</span>
+                            <span class="setting-default">Default: true</span>
+                        </div>
+                        <p class="setting-description">Enable window shadow.</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="macos-window-shadow" data-setting="macos-window-shadow" checked>
+                                <span class="checkbox-label">Enable window shadow</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">macos-auto-secure-input</span>
+                            <span class="setting-default">Default: true</span>
+                        </div>
+                        <p class="setting-description">Automatically enable secure keyboard input when password prompts detected.</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="macos-auto-secure-input" data-setting="macos-auto-secure-input" checked>
+                                <span class="checkbox-label">Auto secure input</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">macos-secure-input-indication</span>
+                            <span class="setting-default">Default: true</span>
+                        </div>
+                        <p class="setting-description">Show visual indicator when secure keyboard input is active.</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="macos-secure-input-indication" data-setting="macos-secure-input-indication" checked>
+                                <span class="checkbox-label">Show secure input indicator</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Linux/GTK Settings -->
+            <div class="category" data-category="linux">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <h3><span class="category-icon">🐧</span> Linux/GTK Settings</h3>
+                    <span class="category-toggle">▼</span>
+                </div>
+                <div class="category-content">
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">gtk-tabs-location</span>
+                            <span class="setting-default">Default: top</span>
+                        </div>
+                        <p class="setting-description">Tab bar location.</p>
+                        <div class="setting-control">
+                            <select id="gtk-tabs-location" data-setting="gtk-tabs-location">
+                                <option value="">-- Default (top) --</option>
+                                <option value="top">top</option>
+                                <option value="bottom">bottom</option>
+                                <option value="hidden">hidden</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">gtk-single-instance</span>
+                            <span class="setting-default">Default: detect</span>
+                        </div>
+                        <p class="setting-description">Run as single instance.</p>
+                        <div class="setting-control">
+                            <select id="gtk-single-instance" data-setting="gtk-single-instance">
+                                <option value="">-- Default (detect) --</option>
+                                <option value="true">true</option>
+                                <option value="false">false</option>
+                                <option value="detect">detect</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">gtk-wide-tabs</span>
+                            <span class="setting-default">Default: true</span>
+                        </div>
+                        <p class="setting-description">Use wide tabs that fill the tab bar.</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="gtk-wide-tabs" data-setting="gtk-wide-tabs" checked>
+                                <span class="checkbox-label">Wide tabs</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">gtk-adwaita</span>
+                            <span class="setting-default">Default: true</span>
+                        </div>
+                        <p class="setting-description">Use libadwaita styling.</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="gtk-adwaita" data-setting="gtk-adwaita" checked>
+                                <span class="checkbox-label">Use Adwaita styling</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">gtk-titlebar</span>
+                            <span class="setting-default">Default: true</span>
+                        </div>
+                        <p class="setting-description">Show GTK header bar/titlebar.</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="gtk-titlebar" data-setting="gtk-titlebar" checked>
+                                <span class="checkbox-label">Show titlebar</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Terminal -->
+            <div class="category" data-category="quick-terminal">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <h3><span class="category-icon">⚡</span> Quick Terminal</h3>
+                    <span class="category-toggle">▼</span>
+                </div>
+                <div class="category-content">
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">quick-terminal-position</span>
+                            <span class="setting-default">Default: top</span>
+                        </div>
+                        <p class="setting-description">Where the quick terminal appears.</p>
+                        <div class="setting-control">
+                            <select id="quick-terminal-position" data-setting="quick-terminal-position">
+                                <option value="">-- Default (top) --</option>
+                                <option value="top">top</option>
+                                <option value="bottom">bottom</option>
+                                <option value="left">left</option>
+                                <option value="right">right</option>
+                                <option value="center">center</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">quick-terminal-size</span>
+                            <span class="setting-default">Default: 50%</span>
+                        </div>
+                        <p class="setting-description">Size of quick terminal.</p>
+                        <div class="setting-control">
+                            <input type="text" id="quick-terminal-size" placeholder="e.g., 50%, 300px" data-setting="quick-terminal-size">
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">quick-terminal-screen</span>
+                            <span class="setting-default">Default: main</span>
+                        </div>
+                        <p class="setting-description">Which screen to show quick terminal on.</p>
+                        <div class="setting-control">
+                            <select id="quick-terminal-screen" data-setting="quick-terminal-screen">
+                                <option value="">-- Default (main) --</option>
+                                <option value="main">main (primary screen)</option>
+                                <option value="mouse">mouse (screen with cursor)</option>
+                                <option value="macos-menu-bar">macos-menu-bar (macOS only)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">quick-terminal-animation-duration</span>
+                            <span class="setting-default">Default: 200ms</span>
+                        </div>
+                        <p class="setting-description">Animation duration for quick terminal show/hide.</p>
+                        <div class="setting-control">
+                            <input type="number" id="quick-terminal-animation-duration" min="0" placeholder="200" data-setting="quick-terminal-animation-duration">
+                        </div>
+                        <p class="help-text">In milliseconds. Set to 0 to disable animation.</p>
+                    </div>
+
+                    <div class="setting">
+                        <div class="setting-header">
+                            <span class="setting-name">quick-terminal-autohide</span>
+                            <span class="setting-default">Default: true</span>
+                        </div>
+                        <p class="setting-description">Auto-hide quick terminal when focus lost.</p>
+                        <div class="setting-control">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="quick-terminal-autohide" data-setting="quick-terminal-autohide" checked>
+                                <span class="checkbox-label">Auto-hide on focus lost</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="settings-panel output-panel">
+            <div class="panel-header">
+                <h2>Generated Config</h2>
+                <button class="copy-btn" onclick="copyConfig()">
+                    <span>📋</span>
+                    <span id="copy-text">Copy</span>
+                </button>
+            </div>
+            <div class="output-content">
+                <textarea id="config-output" readonly></textarea>
+            </div>
+
+            <!-- Theme Preview -->
+            <div class="theme-preview">
+                <div class="preview-header">👁️ Live Preview</div>
+                <div class="preview-terminal" id="preview-terminal">
+                    <div class="preview-line"><span class="preview-prompt">user@ghostty</span> <span class="preview-path">~/projects</span> <span class="preview-git">(main)</span></div>
+                    <div class="preview-line">$ ls -la</div>
+                    <div class="preview-line"><span class="preview-dir">drwxr-xr-x</span>  <span class="preview-file">README.md</span></div>
+                    <div class="preview-line"><span class="preview-exec">-rwxr-xr-x</span>  <span class="preview-exec-name">build.sh</span></div>
+                    <div class="preview-line"><span class="preview-error">Error:</span> <span class="preview-warning">Warning text</span></div>
+                    <div class="preview-line">$ <span class="preview-cursor">█</span></div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <footer>
+            <p>Made with ❤️ by <a href="https://github.com/ventz/ghostty-settings-visual-config" target="_blank">ventz</a> for the <a href="https://ghostty.org" target="_blank">Ghostty</a> terminal emulator</p>
+            <p>Config file location: <code>~/.config/ghostty/config</code></p>
+        </footer>
+    </div>
+
+    <script>
+        // Default palette colors (Gruvbox-inspired)
+        const defaultPalette = {
+            0: '#1d2021', 1: '#cc241d', 2: '#98971a', 3: '#d79921',
+            4: '#458588', 5: '#b16286', 6: '#689d6a', 7: '#a89984',
+            8: '#928374', 9: '#fb4934', 10: '#b8bb26', 11: '#fabd2f',
+            12: '#83a598', 13: '#d3869b', 14: '#8ec07c', 15: '#ebdbb2'
+        };
+
+        // Theme color definitions (from iterm2colorschemes.com)
+        const themeColors = {
+            'Catppuccin Mocha': {
+                background: '#1e1e2e', foreground: '#cdd6f4', cursor: '#f5e0dc',
+                palette: {
+                    0: '#45475a', 1: '#f38ba8', 2: '#a6e3a1', 3: '#f9e2af',
+                    4: '#89b4fa', 5: '#f5c2e7', 6: '#94e2d5', 7: '#a6adc8',
+                    8: '#585b70', 9: '#f37799', 10: '#89d88b', 11: '#ebd391',
+                    12: '#74a8fc', 13: '#f2aede', 14: '#6bd7ca', 15: '#bac2de'
+                }
+            },
+            'catppuccin-mocha': {
+                background: '#1e1e2e', foreground: '#cdd6f4', cursor: '#f5e0dc',
+                palette: {
+                    0: '#45475a', 1: '#f38ba8', 2: '#a6e3a1', 3: '#f9e2af',
+                    4: '#89b4fa', 5: '#f5c2e7', 6: '#94e2d5', 7: '#a6adc8',
+                    8: '#585b70', 9: '#f37799', 10: '#89d88b', 11: '#ebd391',
+                    12: '#74a8fc', 13: '#f2aede', 14: '#6bd7ca', 15: '#bac2de'
+                }
+            },
+            'Catppuccin Latte': {
+                background: '#eff1f5', foreground: '#4c4f69', cursor: '#dc8a78',
+                palette: {
+                    0: '#5c5f77', 1: '#d20f39', 2: '#40a02b', 3: '#df8e1d',
+                    4: '#1e66f5', 5: '#ea76cb', 6: '#179299', 7: '#acb0be',
+                    8: '#6c6f85', 9: '#de293e', 10: '#49af3d', 11: '#eea02d',
+                    12: '#456eff', 13: '#fe85d8', 14: '#2d9fa8', 15: '#bcc0cc'
+                }
+            },
+            'catppuccin-latte': {
+                background: '#eff1f5', foreground: '#4c4f69', cursor: '#dc8a78',
+                palette: {
+                    0: '#5c5f77', 1: '#d20f39', 2: '#40a02b', 3: '#df8e1d',
+                    4: '#1e66f5', 5: '#ea76cb', 6: '#179299', 7: '#acb0be',
+                    8: '#6c6f85', 9: '#de293e', 10: '#49af3d', 11: '#eea02d',
+                    12: '#456eff', 13: '#fe85d8', 14: '#2d9fa8', 15: '#bcc0cc'
+                }
+            },
+            'Dracula': {
+                background: '#282a36', foreground: '#f8f8f2', cursor: '#f8f8f2',
+                palette: {
+                    0: '#21222c', 1: '#ff5555', 2: '#50fa7b', 3: '#f1fa8c',
+                    4: '#bd93f9', 5: '#ff79c6', 6: '#8be9fd', 7: '#f8f8f2',
+                    8: '#6272a4', 9: '#ff6e6e', 10: '#69ff94', 11: '#ffffa5',
+                    12: '#d6acff', 13: '#ff92df', 14: '#a4ffff', 15: '#ffffff'
+                }
+            },
+            'nord': {
+                background: '#2e3440', foreground: '#d8dee9', cursor: '#eceff4',
+                palette: {
+                    0: '#3b4252', 1: '#bf616a', 2: '#a3be8c', 3: '#ebcb8b',
+                    4: '#81a1c1', 5: '#b48ead', 6: '#88c0d0', 7: '#e5e9f0',
+                    8: '#596377', 9: '#bf616a', 10: '#a3be8c', 11: '#ebcb8b',
+                    12: '#81a1c1', 13: '#b48ead', 14: '#8fbcbb', 15: '#eceff4'
+                }
+            },
+            'Nord': {
+                background: '#2e3440', foreground: '#d8dee9', cursor: '#eceff4',
+                palette: {
+                    0: '#3b4252', 1: '#bf616a', 2: '#a3be8c', 3: '#ebcb8b',
+                    4: '#81a1c1', 5: '#b48ead', 6: '#88c0d0', 7: '#e5e9f0',
+                    8: '#596377', 9: '#bf616a', 10: '#a3be8c', 11: '#ebcb8b',
+                    12: '#81a1c1', 13: '#b48ead', 14: '#8fbcbb', 15: '#eceff4'
+                }
+            },
+            'GitHub Dark': {
+                background: '#101216', foreground: '#8b949e', cursor: '#c9d1d9',
+                palette: {
+                    0: '#000000', 1: '#f78166', 2: '#56d364', 3: '#e3b341',
+                    4: '#6ca4f8', 5: '#db61a2', 6: '#2b7489', 7: '#ffffff',
+                    8: '#4d4d4d', 9: '#f78166', 10: '#56d364', 11: '#e3b341',
+                    12: '#6ca4f8', 13: '#db61a2', 14: '#2b7489', 15: '#ffffff'
+                }
+            },
+            'Gruvbox Dark': {
+                background: '#282828', foreground: '#ebdbb2', cursor: '#ebdbb2',
+                palette: {
+                    0: '#282828', 1: '#cc241d', 2: '#98971a', 3: '#d79921',
+                    4: '#458588', 5: '#b16286', 6: '#689d6a', 7: '#a89984',
+                    8: '#928374', 9: '#fb4934', 10: '#b8bb26', 11: '#fabd2f',
+                    12: '#83a598', 13: '#d3869b', 14: '#8ec07c', 15: '#ebdbb2'
+                }
+            },
+            'One Dark': {
+                background: '#282c34', foreground: '#abb2bf', cursor: '#528bff',
+                palette: {
+                    0: '#282c34', 1: '#e06c75', 2: '#98c379', 3: '#e5c07b',
+                    4: '#61afef', 5: '#c678dd', 6: '#56b6c2', 7: '#abb2bf',
+                    8: '#545862', 9: '#e06c75', 10: '#98c379', 11: '#e5c07b',
+                    12: '#61afef', 13: '#c678dd', 14: '#56b6c2', 15: '#c8ccd4'
+                }
+            },
+            'Solarized Dark': {
+                background: '#001e27', foreground: '#9cc2c3', cursor: '#f34b00',
+                palette: {
+                    0: '#002831', 1: '#d11c24', 2: '#6cbe6c', 3: '#a57706',
+                    4: '#2176c7', 5: '#c61c6f', 6: '#259286', 7: '#eae3cb',
+                    8: '#006488', 9: '#f5163b', 10: '#51ef84', 11: '#b27e28',
+                    12: '#178ec8', 13: '#e24d8e', 14: '#00b39e', 15: '#fcf4dc'
+                }
+            },
+            'Tokyo Night': {
+                background: '#1a1b26', foreground: '#c0caf5', cursor: '#c0caf5',
+                palette: {
+                    0: '#15161e', 1: '#f7768e', 2: '#9ece6a', 3: '#e0af68',
+                    4: '#7aa2f7', 5: '#bb9af7', 6: '#7dcfff', 7: '#a9b1d6',
+                    8: '#414868', 9: '#f7768e', 10: '#9ece6a', 11: '#e0af68',
+                    12: '#7aa2f7', 13: '#bb9af7', 14: '#7dcfff', 15: '#c0caf5'
+                }
+            },
+            'rose-pine': {
+                background: '#191724', foreground: '#e0def4', cursor: '#e0def4',
+                palette: {
+                    0: '#26233a', 1: '#eb6f92', 2: '#31748f', 3: '#f6c177',
+                    4: '#9ccfd8', 5: '#c4a7e7', 6: '#ebbcba', 7: '#e0def4',
+                    8: '#6e6a86', 9: '#eb6f92', 10: '#31748f', 11: '#f6c177',
+                    12: '#9ccfd8', 13: '#c4a7e7', 14: '#ebbcba', 15: '#e0def4'
+                }
+            },
+            'Rose Pine': {
+                background: '#191724', foreground: '#e0def4', cursor: '#e0def4',
+                palette: {
+                    0: '#26233a', 1: '#eb6f92', 2: '#31748f', 3: '#f6c177',
+                    4: '#9ccfd8', 5: '#c4a7e7', 6: '#ebbcba', 7: '#e0def4',
+                    8: '#6e6a86', 9: '#eb6f92', 10: '#31748f', 11: '#f6c177',
+                    12: '#9ccfd8', 13: '#c4a7e7', 14: '#ebbcba', 15: '#e0def4'
+                }
+            }
+        };
+
+        // Currently selected theme (for preview)
+        let currentTheme = null;
+
+        // Track keybinds added via builder
+        let keybindList = [];
+
+        // Settings metadata
+        const settingsMetadata = {
+            'font-family': { description: 'Font family to use', options: 'String: font name' },
+            'font-size': { description: 'Font size in points', options: 'Number' },
+            'font-thicken': { description: 'Draw fonts with thicker stroke (macOS)', options: 'Boolean' },
+            'font-synthetic-style': { description: 'Synthesize bold/italic if unavailable', options: 'true, false, no-bold, no-italic' },
+            'font-feature': { description: 'Font features (-calt disables ligatures)', options: 'Features' },
+            'font-family-bold': { description: 'Font family for bold text', options: 'String: font name' },
+            'font-family-italic': { description: 'Font family for italic text', options: 'String: font name' },
+            'font-family-bold-italic': { description: 'Font family for bold italic text', options: 'String: font name' },
+            'font-style': { description: 'Named font style for regular text', options: 'String: style name' },
+            'font-style-bold': { description: 'Named font style for bold text', options: 'String: style name' },
+            'font-style-italic': { description: 'Named font style for italic text', options: 'String: style name' },
+            'font-style-bold-italic': { description: 'Named font style for bold italic text', options: 'String: style name' },
+            'theme': { description: 'Color theme name or path', options: 'String' },
+            'background': { description: 'Background color', options: 'Color: #RRGGBB' },
+            'foreground': { description: 'Foreground color', options: 'Color: #RRGGBB' },
+            'selection-foreground': { description: 'Selection text color', options: 'Color' },
+            'selection-background': { description: 'Selection background color', options: 'Color' },
+            'minimum-contrast': { description: 'Minimum contrast ratio (1-21)', options: 'Number' },
+            'bold-is-bright': { description: 'Use bright colors for bold text', options: 'Boolean' },
+            'selection-invert-fg-bg': { description: 'Invert fg/bg for selection', options: 'Boolean' },
+            'cursor-invert-fg-bg': { description: 'Invert fg/bg under cursor', options: 'Boolean' },
+            'cursor-style': { description: 'Cursor style', options: 'block, bar, underline, block_hollow' },
+            'cursor-style-blink': { description: 'Cursor blink', options: 'Boolean' },
+            'cursor-color': { description: 'Cursor color', options: 'Color' },
+            'cursor-text': { description: 'Text color under cursor', options: 'Color' },
+            'cursor-opacity': { description: 'Cursor opacity', options: '0.0 to 1.0' },
+            'background-opacity': { description: 'Background opacity', options: '0.0 to 1.0' },
+            'background-blur': { description: 'Background blur intensity', options: 'Boolean or number' },
+            'background-image': { description: 'Background image path', options: 'File path' },
+            'background-image-opacity': { description: 'Background image opacity', options: 'Number' },
+            'background-image-fit': { description: 'Background image scaling', options: 'contain, cover, stretch, none' },
+            'window-padding-x': { description: 'Horizontal padding', options: 'Points' },
+            'window-padding-y': { description: 'Vertical padding', options: 'Points' },
+            'window-padding-balance': { description: 'Auto-balance padding', options: 'Boolean' },
+            'window-padding-color': { description: 'Padding area color', options: 'background, extend, extend-always' },
+            'window-decoration': { description: 'Window decorations', options: 'auto, none, client, server' },
+            'window-theme': { description: 'Window theme', options: 'auto, system, light, dark' },
+            'window-height': { description: 'Window height in cells', options: 'Number' },
+            'window-width': { description: 'Window width in cells', options: 'Number' },
+            'fullscreen': { description: 'Start fullscreen', options: 'Boolean' },
+            'window-vsync': { description: 'Enable VSync', options: 'Boolean' },
+            'resize-overlay': { description: 'Show resize overlay', options: 'always, never, after-first' },
+            'resize-overlay-position': { description: 'Resize overlay position', options: 'center, top-left, etc.' },
+            'resize-overlay-duration': { description: 'Resize overlay duration', options: 'Milliseconds' },
+            'confirm-close-surface': { description: 'Confirm before closing', options: 'Boolean' },
+            'window-save-state': { description: 'Save window state', options: 'always, never, default' },
+            'window-title-font-family': { description: 'Title bar font', options: 'String: font name' },
+            'mouse-hide-while-typing': { description: 'Hide mouse while typing', options: 'Boolean' },
+            'mouse-scroll-multiplier': { description: 'Scroll speed', options: 'Number' },
+            'focus-follows-mouse': { description: 'Focus follows mouse', options: 'Boolean' },
+            'click-repeat-interval': { description: 'Multi-click detection interval', options: 'Milliseconds' },
+            'mouse-shift-capture': { description: 'Shift+click behavior in mouse capture', options: 'true, false, always, never' },
+            'clipboard-read': { description: 'Allow clipboard read', options: 'ask, allow, deny' },
+            'clipboard-write': { description: 'Allow clipboard write', options: 'ask, allow, deny' },
+            'copy-on-select': { description: 'Copy on selection', options: 'Boolean' },
+            'clipboard-trim-trailing-spaces': { description: 'Trim spaces when copying', options: 'Boolean' },
+            'clipboard-paste-protection': { description: 'Paste protection warning', options: 'Boolean' },
+            'clipboard-paste-bracketed-safe': { description: 'Safe bracketed paste', options: 'Boolean' },
+            'command': { description: 'Shell command', options: 'Command path' },
+            'shell-integration': { description: 'Shell integration', options: 'detect, none, bash, fish, zsh' },
+            'scrollback-limit': { description: 'Scrollback size in bytes', options: 'Number' },
+            'initial-command': { description: 'Command run before shell', options: 'Command string' },
+            'working-directory': { description: 'Initial working directory', options: 'Path or inherit' },
+            'wait-after-command': { description: 'Keep open after command exits', options: 'Boolean' },
+            'abnormal-command-exit-runtime': { description: 'Min runtime for abnormal exit', options: 'Duration' },
+            'shell-integration-features': { description: 'Shell integration features', options: 'cursor, sudo, title' },
+            'desktop-notifications': { description: 'Allow desktop notifications', options: 'Boolean' },
+            'term': { description: 'TERM environment variable', options: 'xterm-ghostty, xterm-256color' },
+            'keybind': { description: 'Custom keybinding', options: 'trigger=action' },
+            'macos-titlebar-style': { description: 'macOS titlebar style', options: 'native, transparent, tabs, hidden' },
+            'macos-option-as-alt': { description: 'Option as Alt key', options: 'true, false, left, right' },
+            'macos-icon': { description: 'Dock icon style', options: 'official, blueprint, etc.' },
+            'macos-icon-frame': { description: 'Icon frame style', options: 'aluminum, beige, plastic, chrome, none' },
+            'macos-icon-ghost-color': { description: 'Ghost icon color', options: 'Color or auto' },
+            'macos-icon-screen-color': { description: 'Icon screen color', options: 'Color or auto' },
+            'macos-titlebar-proxy-icon': { description: 'Show proxy icon in titlebar', options: 'visible, hidden' },
+            'macos-window-shadow': { description: 'Enable window shadow', options: 'Boolean' },
+            'macos-auto-secure-input': { description: 'Auto secure keyboard input', options: 'Boolean' },
+            'macos-secure-input-indication': { description: 'Show secure input indicator', options: 'Boolean' },
+            'gtk-tabs-location': { description: 'Tab bar location', options: 'top, bottom, hidden' },
+            'gtk-single-instance': { description: 'Single instance mode', options: 'true, false, detect' },
+            'gtk-wide-tabs': { description: 'Wide tabs', options: 'Boolean' },
+            'gtk-adwaita': { description: 'Use Adwaita styling', options: 'Boolean' },
+            'gtk-titlebar': { description: 'Show GTK titlebar', options: 'Boolean' },
+            'quick-terminal-position': { description: 'Quick terminal position', options: 'top, bottom, left, right, center' },
+            'quick-terminal-size': { description: 'Quick terminal size', options: 'Percent or pixels' },
+            'quick-terminal-screen': { description: 'Quick terminal screen', options: 'main, mouse, macos-menu-bar' },
+            'quick-terminal-animation-duration': { description: 'Animation duration', options: 'Milliseconds' },
+            'quick-terminal-autohide': { description: 'Auto-hide on focus lost', options: 'Boolean' },
+            'palette': { description: 'ANSI color palette', options: 'N=#RRGGBB' }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            generateConfig();
+            updatePreview();
+        });
+
+        function setupEventListeners() {
+            document.querySelectorAll('input, select, textarea').forEach(el => {
+                el.addEventListener('input', handleInput);
+                el.addEventListener('change', handleInput);
+            });
+            syncColorInputs();
+        }
+
+        function handleInput(e) {
+            generateConfig();
+            updatePreview();
+        }
+
+        function syncColorInputs() {
+            const colorPairs = [
+                ['background-color', 'background-text'],
+                ['foreground-color', 'foreground-text'],
+                ['selection-foreground-color', 'selection-foreground-text'],
+                ['selection-background-color', 'selection-background-text'],
+                ['cursor-color-picker', 'cursor-color'],
+                ['cursor-text-picker', 'cursor-text']
+            ];
+
+            colorPairs.forEach(([colorId, textId]) => {
+                const colorEl = document.getElementById(colorId);
+                const textEl = document.getElementById(textId);
+                if (colorEl && textEl) {
+                    colorEl.addEventListener('input', () => {
+                        textEl.value = colorEl.value;
+                        generateConfig();
+                        updatePreview();
+                    });
+                    textEl.addEventListener('input', () => {
+                        if (/^#[0-9a-fA-F]{6}$/.test(textEl.value)) {
+                            colorEl.value = textEl.value;
+                        }
+                        generateConfig();
+                        updatePreview();
+                    });
+                }
+            });
+
+            // Palette color inputs
+            for (let i = 0; i < 16; i++) {
+                const el = document.getElementById(`palette-${i}`);
+                if (el) {
+                    el.addEventListener('input', () => {
+                        generateConfig();
+                        updatePreview();
+                    });
+                }
+            }
+        }
+
+        function toggleCategory(header) {
+            header.parentElement.classList.toggle('open');
+        }
+
+        function toggleImport() {
+            document.getElementById('import-section').classList.toggle('open');
+        }
+
+        function expandAll() {
+            document.querySelectorAll('.category').forEach(cat => cat.classList.add('open'));
+        }
+
+        function collapseAll() {
+            document.querySelectorAll('.category').forEach(cat => cat.classList.remove('open'));
+        }
+
+        function resetAll() {
+            if (!confirm('Reset all settings to defaults?')) return;
+            document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(el => el.value = '');
+            document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+            document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
+            resetPalette();
+            keybindList = [];
+            renderKeybindList();
+            generateConfig();
+            updatePreview();
+        }
+
+        function resetPalette() {
+            for (let i = 0; i < 16; i++) {
+                const el = document.getElementById(`palette-${i}`);
+                if (el) el.value = defaultPalette[i];
+            }
+            generateConfig();
+            updatePreview();
+        }
+
+        function setTheme(themeName) {
+            document.getElementById('theme').value = themeName;
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            if (event && event.target) event.target.classList.add('active');
+
+            // Set current theme for preview
+            currentTheme = themeName;
+
+            // Apply theme colors to color pickers if theme exists
+            if (themeColors[themeName]) {
+                const theme = themeColors[themeName];
+                // Update background/foreground color inputs
+                document.getElementById('background-color').value = theme.background;
+                document.getElementById('background-text').value = theme.background;
+                document.getElementById('foreground-color').value = theme.foreground;
+                document.getElementById('foreground-text').value = theme.foreground;
+
+                // Update palette colors
+                for (let i = 0; i < 16; i++) {
+                    const el = document.getElementById(`palette-${i}`);
+                    if (el && theme.palette[i]) {
+                        el.value = theme.palette[i];
+                    }
+                }
+            }
+
+            generateConfig();
+            updatePreview();
+        }
+
+        // Keybind Builder
+        function addKeybind() {
+            const ctrl = document.getElementById('kb-ctrl').checked;
+            const shift = document.getElementById('kb-shift').checked;
+            const alt = document.getElementById('kb-alt').checked;
+            const superKey = document.getElementById('kb-super').checked;
+            const key = document.getElementById('kb-key').value.trim();
+            let action = document.getElementById('kb-action').value;
+
+            const global = document.getElementById('kb-global').checked;
+            const all = document.getElementById('kb-all').checked;
+            const unconsumed = document.getElementById('kb-unconsumed').checked;
+            const performable = document.getElementById('kb-performable').checked;
+
+            if (!key || !action) {
+                alert('Please enter a key and select an action');
+                return;
+            }
+
+            // Handle custom text/csi/esc actions
+            if (action === 'text:' || action === 'csi:' || action === 'esc:') {
+                const param = prompt(`Enter the ${action.slice(0, -1)} parameter:`);
+                if (!param) return;
+                action = action + param;
+            }
+
+            // Build trigger
+            let trigger = '';
+            if (global) trigger += 'global:';
+            if (all) trigger += 'all:';
+            if (unconsumed) trigger += 'unconsumed:';
+            if (performable) trigger += 'performable:';
+
+            const mods = [];
+            if (ctrl) mods.push('ctrl');
+            if (shift) mods.push('shift');
+            if (alt) mods.push('alt');
+            if (superKey) mods.push('super');
+
+            trigger += [...mods, key].join('+');
+
+            const keybind = `${trigger}=${action}`;
+            keybindList.push(keybind);
+            renderKeybindList();
+            generateConfig();
+
+            // Reset builder
+            document.getElementById('kb-ctrl').checked = false;
+            document.getElementById('kb-shift').checked = false;
+            document.getElementById('kb-alt').checked = false;
+            document.getElementById('kb-super').checked = false;
+            document.getElementById('kb-key').value = '';
+            document.getElementById('kb-action').selectedIndex = 0;
+            document.getElementById('kb-global').checked = false;
+            document.getElementById('kb-all').checked = false;
+            document.getElementById('kb-unconsumed').checked = false;
+            document.getElementById('kb-performable').checked = false;
+        }
+
+        function renderKeybindList() {
+            const container = document.getElementById('keybind-list');
+            container.innerHTML = keybindList.map((kb, i) => `
+                <div class="keybind-item">
+                    <code>${kb}</code>
+                    <button class="remove-keybind-btn" onclick="removeKeybind(${i})">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function removeKeybind(index) {
+            keybindList.splice(index, 1);
+            renderKeybindList();
+            generateConfig();
+        }
+
+        // Import Config
+        function importConfig() {
+            const config = document.getElementById('import-config').value;
+            const status = document.getElementById('import-status');
+            let count = 0;
+
+            const lines = config.split('\n');
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || trimmed.startsWith('#')) continue;
+
+                const match = trimmed.match(/^([a-z0-9-]+)\s*=\s*(.+)$/i);
+                if (!match) continue;
+
+                const [, key, value] = match;
+                const cleanValue = value.trim();
+
+                // Handle palette
+                if (key === 'palette') {
+                    const paletteMatch = cleanValue.match(/^(\d+)\s*=\s*(#?[a-fA-F0-9]+)$/);
+                    if (paletteMatch) {
+                        const el = document.getElementById(`palette-${paletteMatch[1]}`);
+                        if (el) {
+                            el.value = paletteMatch[2].startsWith('#') ? paletteMatch[2] : '#' + paletteMatch[2];
+                            count++;
+                        }
+                    }
+                    continue;
+                }
+
+                // Handle keybind
+                if (key === 'keybind') {
+                    keybindList.push(cleanValue);
+                    count++;
+                    continue;
+                }
+
+                // Find matching input
+                const input = document.querySelector(`[data-setting="${key}"]`);
+                if (input) {
+                    if (input.type === 'checkbox') {
+                        input.checked = cleanValue === 'true';
+                    } else if (input.type === 'color') {
+                        input.value = cleanValue.startsWith('#') ? cleanValue : '#' + cleanValue;
+                    } else {
+                        input.value = cleanValue;
+                    }
+                    count++;
+
+                    // Sync color text inputs
+                    if (input.id.endsWith('-color')) {
+                        const textId = input.id.replace('-color', '-text');
+                        const textInput = document.getElementById(textId);
+                        if (textInput) textInput.value = input.value;
+                    }
+                }
+            }
+
+            renderKeybindList();
+            generateConfig();
+            updatePreview();
+            status.textContent = `Imported ${count} settings`;
+            status.style.color = 'var(--success)';
+            setTimeout(() => { status.textContent = ''; }, 3000);
+        }
+
+        // Generate Config
+        function generateConfig() {
+            const settings = [];
+            let settingCount = 0;
+
+            // Process form settings
+            document.querySelectorAll('[data-setting]').forEach(el => {
+                const name = el.dataset.setting;
+                let value = '';
+
+                if (el.type === 'checkbox') {
+                    if (el.checked) value = 'true';
+                } else if (el.tagName === 'TEXTAREA' && name === 'keybind') {
+                    // Handle manual keybind textarea
+                    const lines = el.value.split('\n').filter(l => l.trim());
+                    lines.forEach(line => {
+                        settings.push({ name: 'keybind', value: line.trim(), comment: generateComment('keybind') });
+                        settingCount++;
+                    });
+                    return;
+                } else if (el.type === 'color') {
+                    if (el.id.endsWith('-color') || el.id.endsWith('-picker')) return;
+                } else {
+                    value = el.value.trim();
+                }
+
+                if (value) {
+                    settings.push({ name, value, comment: generateComment(name) });
+                    settingCount++;
+                }
+            });
+
+            // Process palette colors
+            for (let i = 0; i < 16; i++) {
+                const el = document.getElementById(`palette-${i}`);
+                if (el && el.value !== defaultPalette[i]) {
+                    settings.push({
+                        name: 'palette',
+                        value: `${i}=${el.value}`,
+                        comment: generateComment('palette')
+                    });
+                    settingCount++;
+                }
+            }
+
+            // Add keybinds from builder
+            keybindList.forEach(kb => {
+                settings.push({ name: 'keybind', value: kb, comment: generateComment('keybind') });
+                settingCount++;
+            });
+
+            // Generate output
+            let config = '# Ghostty Configuration\n';
+            config += '# Generated by Ventz\'s Ghostty Settings Generator\n';
+            config += '# https://github.com/ventz/ghostty-settings-visual-config\n\n';
+
+            settings.forEach(s => {
+                config += s.comment;
+                config += `${s.name} = ${s.value}\n\n`;
+            });
+
+            if (settings.length === 0) {
+                config += '# No settings modified.\n';
+                config += '# Config file: ~/.config/ghostty/config\n';
+            }
+
+            document.getElementById('config-output').value = config;
+            document.getElementById('setting-count').textContent = settingCount;
+            document.getElementById('line-count').textContent = config.split('\n').length;
+        }
+
+        function generateComment(name) {
+            const meta = settingsMetadata[name];
+            if (!meta) return '';
+            let comment = '';
+            if (meta.description) comment += `# ${meta.description}\n`;
+            if (meta.options) comment += `# Options: ${meta.options}\n`;
+            return comment;
+        }
+
+        // Update Preview
+        function updatePreview() {
+            const preview = document.getElementById('preview-terminal');
+
+            // Check if a known theme is selected
+            const themeName = document.getElementById('theme').value;
+            const theme = themeColors[themeName];
+
+            // Use theme colors if available, otherwise use manual color inputs
+            let bg, fg;
+            const p = {};
+
+            if (theme) {
+                bg = theme.background;
+                fg = theme.foreground;
+                for (let i = 0; i < 16; i++) {
+                    p[i] = theme.palette[i] || defaultPalette[i];
+                }
+            } else {
+                bg = document.getElementById('background-text').value || document.getElementById('background-color').value || '#0d1117';
+                fg = document.getElementById('foreground-text').value || document.getElementById('foreground-color').value || '#e6edf3';
+                for (let i = 0; i < 16; i++) {
+                    const el = document.getElementById(`palette-${i}`);
+                    p[i] = el ? el.value : defaultPalette[i];
+                }
+            }
+
+            // Get font settings
+            const fontFamily = document.getElementById('font-family').value || "'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace";
+            const fontSize = document.getElementById('font-size').value || '12';
+            const bgOpacity = document.getElementById('background-opacity').value || '1';
+
+            // Apply font and background settings
+            preview.style.fontFamily = fontFamily;
+            preview.style.fontSize = fontSize + 'pt';
+            preview.style.background = bg;
+            preview.style.color = fg;
+            preview.style.opacity = bgOpacity;
+
+            // Update preview elements with palette colors
+            const prompt = preview.querySelector('.preview-prompt');
+            const path = preview.querySelector('.preview-path');
+            const git = preview.querySelector('.preview-git');
+            const dir = preview.querySelector('.preview-dir');
+            const file = preview.querySelector('.preview-file');
+            const exec = preview.querySelector('.preview-exec');
+            const execName = preview.querySelector('.preview-exec-name');
+            const error = preview.querySelector('.preview-error');
+            const warning = preview.querySelector('.preview-warning');
+            const cursor = preview.querySelector('.preview-cursor');
+
+            if (prompt) prompt.style.color = p[2]; // Green
+            if (path) path.style.color = p[4]; // Blue
+            if (git) git.style.color = p[5]; // Magenta
+            if (dir) dir.style.color = p[4]; // Blue
+            if (file) file.style.color = fg;
+            if (exec) exec.style.color = p[10]; // Bright green
+            if (execName) execName.style.color = p[10];
+            if (error) error.style.color = p[1]; // Red
+            if (warning) warning.style.color = p[3]; // Yellow
+            if (cursor) {
+                // Use theme cursor color, then manual input, then palette color 15
+                const themeCursor = theme ? theme.cursor : null;
+                const cursorColor = themeCursor || document.getElementById('cursor-color').value || p[15];
+                cursor.style.color = cursorColor;
+                cursor.style.background = cursorColor;
+
+                // Update cursor style
+                const cursorStyle = document.getElementById('cursor-style').value;
+                if (cursorStyle === 'bar') {
+                    cursor.textContent = '│';
+                } else if (cursorStyle === 'underline') {
+                    cursor.textContent = '▁';
+                } else if (cursorStyle === 'block_hollow') {
+                    cursor.textContent = '▯';
+                    cursor.style.background = 'transparent';
+                } else {
+                    cursor.textContent = '█';
+                }
+            }
+        }
+
+        // Copy Config
+        async function copyConfig() {
+            const config = document.getElementById('config-output').value;
+            const btn = document.querySelector('.copy-btn');
+            const btnText = document.getElementById('copy-text');
+
+            try {
+                await navigator.clipboard.writeText(config);
+                btn.classList.add('copied');
+                btnText.textContent = 'Copied!';
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btnText.textContent = 'Copy';
+                }, 2000);
+            } catch (err) {
+                const textarea = document.getElementById('config-output');
+                textarea.select();
+                document.execCommand('copy');
+                btn.classList.add('copied');
+                btnText.textContent = 'Copied!';
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btnText.textContent = 'Copy';
+                }, 2000);
+            }
+        }
+    </script>
+</body>
+</html>
